@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediksi Risiko Stroke</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="https://fonts.googleapis.com/css?family=Kaushan+Script&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .navbar {
+            background-color: #4CAF50;
+        }
+        .navbar a {
+            color: white;
+        }
+        .container {
+            margin-top: 30px;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .result {
+            font-size: 18px;
+            color: #333;
+            margin-top: 20px;
+        }
+        .jumbotron {
+            background-color: #DFE9AC;
+        }
+        footer {
+            background-color: #343a40;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Prediksi Risiko Stroke</a>
+        </div>
+    </nav>
+
+    <!-- Home Section -->
+    <div class="jumbotron">
+        <div class="container">
+            <h1 class="display-4">Selamat Datang di Prediksi Risiko Stroke!</h1>
+            <p class="lead">Periksa risiko stroke Anda berdasarkan data kesehatan.</p>
+            <hr class="my-4">
+            <p>Alat ini membantu memprediksi kemungkinan terjadinya stroke berdasarkan indikator kesehatan seperti usia, hipertensi, penyakit jantung, dan tingkat glukosa darah.</p>
+        </div>
+    </div>
+
+    <!-- Stroke Information Section -->
+    <div class="container section">
+        <h2>Apa Itu Stroke?</h2>
+        <p>Stroke adalah kondisi medis serius di mana pasokan darah ke bagian otak terganggu. Ini dapat menyebabkan kerusakan otak dan mempengaruhi fungsi tubuh. Intervensi cepat dapat menyelamatkan nyawa dan mengurangi kerusakan jangka panjang.</p>
+        <h3>Penyebab Umum Stroke</h3>
+        <ul>
+            <li>Tekanan darah tinggi</li>
+            <li>Diabetes</li>
+            <li>Merokok</li>
+            <li>Kadar kolesterol tinggi</li>
+            <li>Obesitas dan kurang aktivitas fisik</li>
+        </ul>
+        <h3>Bagaimana Mencegah Stroke?</h3>
+        <p>Menjaga gaya hidup sehat adalah kunci untuk pencegahan stroke: makan makanan seimbang, berolahraga, berhenti merokok, dan mengelola tingkat stres.</p>
+    </div>
+
+    <!-- Prediction Section -->
+    <div class="container section" id="prediction">
+        <h2>Prediksi Risiko Stroke Anda</h2>
+        <form id="predictionForm">
+            <label>Usia</label>
+            <input type="number" id="age" class="form-control" required>
+            <label>Hipertensi</label>
+            <select id="hypertension" class="form-control">
+                <option value="0">Tidak</option>
+                <option value="1">Ya</option>
+            </select>
+            <label>Penyakit Jantung</label>
+            <select id="heart_disease" class="form-control">
+                <option value="0">Tidak</option>
+                <option value="1">Ya</option>
+            </select>
+            <label>Tingkat Glukosa Rata-Rata</label>
+            <input type="number" id="avg_glucose_level" class="form-control" step="0.1" required>
+            <button type="button" class="btn btn-success" onclick="predict()">Prediksi</button>
+        </form>
+        <p class="result" id="result"></p>
+
+        <!-- Alert for Success and Failure -->
+        <div id="alertResult" class="alert alert-dismissible" role="alert" style="display: none;">
+            <strong id="alertMessage"></strong>
+        </div>
+    </div>
+
+    <script>
+       async function predict() {
+    const data = {
+        age: parseInt(document.getElementById('age').value),
+        hypertension: parseInt(document.getElementById('hypertension').value),
+        heart_disease: parseInt(document.getElementById('heart_disease').value),
+        avg_glucose_level: parseFloat(document.getElementById('avg_glucose_level').value)
+    };
+
+    try {
+        const response = await fetch('http://localhost:5000/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+
+        const alertElement = document.getElementById('alertResult');
+        const alertMessage = document.getElementById('alertMessage');
+
+        if (response.ok) {
+            const rfMessage = result.RandomForest_Prediction === 1 ? "Random Forest: Resiko terkena stroke." : "Random Forest: Tidak ada risiko stroke.";
+            const dtMessage = result.DecisionTree_Prediction === 1 ? "Decision Tree: Resiko terkena stroke." : "Decision Tree: Tidak ada risiko stroke.";
+
+            // Menambahkan <br> untuk pemisah
+            alertMessage.innerHTML = `${rfMessage}<br>${dtMessage}`;
+            alertElement.className = "alert alert-success";
+        } else {
+            alertMessage.innerText = 'Terjadi kesalahan: ' + result.error;
+            alertElement.className = "alert alert-danger";
+        }
+
+        alertElement.style.display = "block";
+    } catch (error) {
+        const alertElement = document.getElementById('alertResult');
+        const alertMessage = document.getElementById('alertMessage');
+        alertMessage.innerText = 'Kesalahan jaringan: ' + error.message;
+        alertElement.className = "alert alert-danger";
+        alertElement.style.display = "block";
+    }
+}
+
+    </script>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 Tim Rawrr. Semua hak cipta dilindungi. Terima kasih telah menggunakan alat ini untuk memeriksa risiko stroke Anda!</p>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+</body>
+</html>
